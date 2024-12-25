@@ -1,0 +1,31 @@
+{% extends 'calorie/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">{{ data.class_name | title }} Nutrition Data</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Calories:</strong> {{ data.calories }} kcal</li>
+                        <li class="list-group-item"><strong>Protein:</strong> {{ data.protein }} g</li>
+                        <li class="list-group-item"><strong>Carbohydrates:</strong> {{ data.carbs }} g</li>
+                        <li class="list-group-item"><strong>Fats:</strong> {{ data.fats }} g</li>
+                        <li class="list-group-item"><strong>Cholesterol:</strong> {{ data.cholestrol }} mg</li>
+                        <li class="list-group-item"><strong>Iron:</strong> {{ data.iron }} mg</li>
+                        <li class="list-group-item"><strong>Calcium:</strong> {{ data.calcium }} mg</li>
+                        <li class="list-group-item"><strong>Sodium:</strong> {{ data.sodium }} mg</li>
+                        <li class="list-group-item"><strong>Magnesium:</strong> {{ data.magnesium }} mg</li>
+                        <li class="list-group-item"><strong>Phosphorus:</strong> {{ data.phosphorus }} mg</li>
+                        <li class="list-group-item"><strong>Zinc:</strong> {{ data.zinc }} mg</li>
+                        <li class="list-group-item"><strong>Vitamin B12:</strong> {{ data.vitaminb12 }} μg</li>
+                        <li class="list-group-item"><strong>Folic Acid:</strong> {{ data.folic_acid }} μg</li>
+                    </ul>
+                    <a href="{% url 'log_meals' %}" class="btn btn-primary w-100 mt-4">View All Meals</a>
+                    <a href="{% url 'home' %}" class="btn btn-secondary w-100 mt-2">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

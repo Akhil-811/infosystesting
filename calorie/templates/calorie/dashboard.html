@@ -1,0 +1,67 @@
+{% extends 'calorie/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Greeting Section -->
+    <h1 class="text-center" style="color: #FFFFFF;">Hello, {{ user.username }}! Let's track your meal today.</h1>
+    <p class="text-center" style="color: #FFFFFF;">{{ today_date }}</p>
+
+    <!-- Meal Display Section -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="card shadow-lg">
+                <div class="card-body d-flex flex-wrap align-items-center">
+                    <!-- Meal Image on the Left -->
+                    <div class="col-md-4 text-center">
+                        {% if current_meal and current_meal.image %}
+                        <img src="{{ current_meal.image.image.url }}" class="img-fluid rounded shadow-sm" alt="Meal Image">
+                        {% else %}
+                        <p>No image available for this meal.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Meal Description on the Right -->
+                    <div class="col-md-8">
+                        {% if current_meal %}
+                        <h5>{{ current_meal.class_name }}</h5>
+                        <p>Calories: {{ current_meal.calories }} kcal</p>
+                        <p>Protein: {{ current_meal.protein }} g</p>
+                        <p>Carbs: {{ current_meal.carbs }} g</p>
+                        <p>Fats: {{ current_meal.fats }} g</p>
+                        <p>Other Nutrients:</p>
+                        <ul>
+                            <li>Cholesterol: {{ current_meal.cholestrol }} mg</li>
+                            <li>Iron: {{ current_meal.iron }} mg</li>
+                            <li>Calcium: {{ current_meal.calcium }} mg</li>
+                            <li>Sodium: {{ current_meal.sodium }} mg</li>
+                            <li>Magnesium: {{ current_meal.magnesium }} mg</li>
+                            <li>Phosphorus: {{ current_meal.phosphorus }} mg</li>
+                            <li>Zinc: {{ current_meal.zinc }} mg</li>
+                            <li>Vitamin B12: {{ current_meal.vitaminb12 }} µg</li>
+                            <li>Folic Acid: {{ current_meal.folic_acid }} µg</li>
+                        </ul>
+                        {% else %}
+                        <p>No meal data available. Log a new meal to see details here.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="row mt-4">
+        <div class="col-md-6 text-start">
+            {% if has_previous %}
+            <form method="post" action="{% url 'dashboard' %}">
+                {% csrf_token %}
+                <button type="submit" name="prev" value="1" class="btn btn-primary">Previous</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'upload_image' %}" class="btn btn-success">Upload Meal</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
