@@ -10,20 +10,8 @@ from transformers import ViTImageProcessor, ViTForImageClassification
 from PIL import Image as PilImage
 from . import utils
 from datetime import date
+from django.contrib import messages
 
-
-@login_required
-def home(request):
-    """
-    Home page displaying daily goals and the latest nutrition data.
-    """
-    daily_goal = DailyGoal.objects.filter(user=request.user).first()
-    data = NutritionData.objects.last()
-    context = {
-        'daily_goal': daily_goal,
-        "data": data
-    }
-    return render(request, 'calorie/dashboard.html', context)
 
 
 @login_required
@@ -151,40 +139,95 @@ def recommendations(request):
 @login_required
 def dashboard(request):
     """
-    Displays a dashboard with meal details and navigation for previous meals.
+    Dashboard to track meals, display the latest logged meal, and navigate through logged meals.
     """
-    # Get today's date
-    today_date = date.today()
+    meals = NutritionData.objects.filter(user=request.user).order_by('-timestamp')  # Order by timestamp
 
-    # Fetch meals for today
-    meals = NutritionData.objects.filter(user=request.user, date=today_date).order_by('-id')
+    # Initialize or update current meal index in session
+    if 'current_meal_index' not in request.session:
+        request.session['current_meal_index'] = 0
 
-    # Get the current meal index from session
-    current_index = request.session.get('current_meal_index', 0)
+    current_index = request.session['current_meal_index']
 
-    # Handle "Previous" button
-    if request.method == 'POST' and 'prev' in request.POST:
-        current_index = max(0, current_index - 1)  # Navigate to previous meal without going below index 0
+    if request.method == "POST":
+        if 'prev' in request.POST and current_index + 1 < meals.count():
+            current_index += 1  # Move to the previous meal
+        elif 'next' in request.POST and current_index > 0:
+            current_index -= 1  # Move to the next meal
+        request.session['current_meal_index'] = current_index
 
-    # Save the updated index back into the session
-    request.session['current_meal_index'] = current_index
+    # Get the meal for the current index
+    current_meal = meals[current_index] if meals.exists() else None
 
-    # Get the current meal to display
-    current_meal = meals[current_index] if current_index < len(meals) else None
-
-    # Context to render the dashboard
     context = {
         'user': request.user,
-        'today_date': today_date,
+        'today_date': date.today(),
         'current_meal': current_meal,
-        'has_previous': current_index > 0,  # Check if there's a previous meal available
+        'has_meals': meals.exists(),
+        'has_previous': current_index + 1 < meals.count(),
+        'has_next': current_index > 0,
     }
     return render(request, 'calorie/dashboard.html', context)
-
-
 @login_required
 def profile(request):
     """
     View for the user's profile page.
     """
     return render(request, 'calorie/profile.html', {'user': request.user})
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+
+        # Update the user's first and last name
+        request.user.first_name = first_name
+        request.user.last_name = last_name
+        request.user.save()
+
+        # Success message
+        messages.success(request, 'Your profile has been updated successfully!')
+
+        return redirect('profile')  # Redirect back to the profile page
+
+    return render(request, 'calorie/profile.html')
+def trends_and_reports(request):
+    # Get today's date for filtering (without the time part)
+    today = datetime.today().date()  # Only the date part
+    
+    # Fetch nutrition data for today
+    trends = NutritionData.objects.filter(timestamp__date=today)  # This ensures we only get today's records
+
+    # Prepare the data for plotting
+    dates = []
+    calories = []
+    protein = []
+    carbs = []
+    fats = []
+
+    if trends.exists():  # Check if we have data
+        for trend in trends:
+            # Use the timestamp as the label or a formatted string (e.g., date only)
+            dates.append(trend.timestamp.strftime('%Y-%m-%d'))  # Format as 'YYYY-MM-DD'
+            calories.append(trend.calories)
+            protein.append(trend.protein)
+            carbs.append(trend.carbs)
+            fats.append(trend.fats)
+    else:
+        # If no data, set the values to empty
+        dates = ["No data available"]
+        calories = [0]
+        protein = [0]
+        carbs = [0]
+        fats = [0]
+
+    context = {
+        'dates': dates,
+        'calories': calories,
+        'protein': protein,
+        'carbs': carbs,
+        'fats': fats,
+        'has_data': trends.exists(),  # Indicates whether we have data to display
+    }
+
+    return render(request, 'calorie/trends_reports.html', context)
